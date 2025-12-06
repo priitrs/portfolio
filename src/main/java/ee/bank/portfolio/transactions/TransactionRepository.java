@@ -28,4 +28,9 @@ public class TransactionRepository {
     public List<Transaction> getAll(){
         return jdbcTemplate.query("SELECT * FROM transactions;", transactionRowMapper);
     }
+
+    public void save(Transaction t) {
+        jdbcTemplate.update("INSERT INTO transactions (timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?);",
+                t.timestamp(), t.type(), t.quantity(), t.price(), t.fee());
+    }
 }

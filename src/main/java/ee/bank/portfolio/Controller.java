@@ -1,9 +1,7 @@
 package ee.bank.portfolio;
 
 import ee.bank.portfolio.transactions.Transaction;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,5 +18,10 @@ public class Controller {
     @GetMapping("/transactions")
     public List<Transaction> getAllTransactions(){
         return calculationService.getAllTransactions();
+    }
+
+    @PostMapping("/transactions")
+    public void addTransaction(@RequestBody Transaction transaction){
+        calculationService.addTransaction(transaction);
     }
 }

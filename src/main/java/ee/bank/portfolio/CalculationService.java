@@ -17,4 +17,8 @@ public class CalculationService {
     public List<Transaction> getAllTransactions(){
         return transactionRepository.getAll();
     }
+
+    public void addTransaction(Transaction transaction) {
+        transactionRepository.save(transaction);
+    }
 }
