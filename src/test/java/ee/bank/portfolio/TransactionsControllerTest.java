@@ -1,9 +1,11 @@
 package ee.bank.portfolio;
 
-import ee.bank.portfolio.positionlots.PositionLotRepository;
-import ee.bank.portfolio.positions.PositionRepository;
-import ee.bank.portfolio.transactions.Transaction;
-import ee.bank.portfolio.transactions.TransactionRepository;
+import ee.bank.portfolio.controller.TransactionsController;
+import ee.bank.portfolio.exception.TransactionException;
+import ee.bank.portfolio.repository.PositionLotRepository;
+import ee.bank.portfolio.repository.PositionRepository;
+import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.repository.TransactionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import static ee.bank.portfolio.CalculationService.DEFAULT_ASSET;
+import static ee.bank.portfolio.service.CalculationService.DEFAULT_ASSET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

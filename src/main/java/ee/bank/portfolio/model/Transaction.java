@@ -1,4 +1,4 @@
-package ee.bank.portfolio.transactions;
+package ee.bank.portfolio.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

@@ -1,5 +1,6 @@
-package ee.bank.portfolio.positions;
+package ee.bank.portfolio.repository;
 
+import ee.bank.portfolio.model.Position;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;

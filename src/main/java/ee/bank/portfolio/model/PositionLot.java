@@ -1,4 +1,4 @@
-package ee.bank.portfolio.positionlots;
+package ee.bank.portfolio.model;
 
 import java.math.BigDecimal;
 

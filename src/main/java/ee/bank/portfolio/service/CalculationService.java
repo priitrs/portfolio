@@ -1,10 +1,11 @@
-package ee.bank.portfolio;
+package ee.bank.portfolio.service;
 
-import ee.bank.portfolio.positionlots.PositionLotRepository;
-import ee.bank.portfolio.positions.Position;
-import ee.bank.portfolio.positions.PositionRepository;
-import ee.bank.portfolio.transactions.Transaction;
-import ee.bank.portfolio.transactions.TransactionRepository;
+import ee.bank.portfolio.exception.TransactionException;
+import ee.bank.portfolio.repository.PositionLotRepository;
+import ee.bank.portfolio.model.Position;
+import ee.bank.portfolio.repository.PositionRepository;
+import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

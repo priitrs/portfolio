@@ -1,5 +1,6 @@
-package ee.bank.portfolio.transactions;
+package ee.bank.portfolio.repository;
 
+import ee.bank.portfolio.model.Transaction;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;

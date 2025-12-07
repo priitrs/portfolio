@@ -1,6 +1,7 @@
-package ee.bank.portfolio;
+package ee.bank.portfolio.controller;
 
-import ee.bank.portfolio.transactions.Transaction;
+import ee.bank.portfolio.service.CalculationService;
+import ee.bank.portfolio.model.Transaction;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -1,8 +1,9 @@
-package ee.bank.portfolio;
+package ee.bank.portfolio.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ee.bank.portfolio.transactions.Transaction;
+import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.service.CalculationService;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
