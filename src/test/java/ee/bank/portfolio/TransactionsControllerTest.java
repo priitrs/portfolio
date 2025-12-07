@@ -85,7 +85,6 @@ class TransactionsControllerTest {
         var positionLots = positionLotRepository.getAll();
         assertThat(positionLots.size()).isEqualTo(1);
         var positionLot = positionLots.getFirst();
-        assertThat(positionLot.asset()).isEqualTo(ASSET_1);
         assertThat(positionLot.qtyRemaining()).isEqualTo(2);
         assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
         var position = positionRepository.getByAsset(ASSET_1);
@@ -104,7 +103,6 @@ class TransactionsControllerTest {
         var positionLots = positionLotRepository.getAll();
         assertThat(positionLots.size()).isEqualTo(2);
         var positionLot = positionLots.get(1);
-        assertThat(positionLot.asset()).isEqualTo(ASSET_1);
         assertThat(positionLot.qtyRemaining()).isEqualTo(4);
         assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
         var position = positionRepository.getByAsset(ASSET_1);

@@ -1,14 +1,11 @@
 package ee.bank.portfolio.positionlots;
 
-import ee.bank.portfolio.positions.Position;
-import ee.bank.portfolio.transactions.Transaction;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @Repository
 public class PositionLotRepository {
@@ -33,5 +30,13 @@ public class PositionLotRepository {
 
     public List<PositionLot> getAll(){
         return jdbcTemplate.query("SELECT * FROM position_lots;", positionLotRowMapper);
+    }
+
+    public PositionLot getFirstWithRemainingQuantity(){
+        return jdbcTemplate.query("SELECT * FROM position_lots WHERE qty_remaining > 0 LIMIT 1;", positionLotRowMapper).getFirst();
+    }
+
+    public void updateQuantity(long id, int quantity) {
+        jdbcTemplate.update("UPDATE position_lots SET qty_remaining = ? WHERE id = ?;", quantity, id);
     }
 }

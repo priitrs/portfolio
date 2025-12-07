@@ -28,42 +28,80 @@ public class CalculationService {
         this.positionLotRepository = positionLotRepository;
     }
 
-    public List<Transaction> getAllTransactions(){
+    public List<Transaction> getAllTransactions() {
         return transactionRepository.getAll();
     }
 
     public void handleAddTransaction(Transaction transaction) {
         Optional<Position> optionalPosition = positionRepository.getByAsset(ASSET_1);
-        validate(transaction, optionalPosition);
-        transactionRepository.save(transaction);
-        if (BUY.equals(transaction.type())){
-            positionLotRepository.insert(ASSET_1, transaction.quantity(), transaction.getAverageCost());
 
+        if (BUY.equals(transaction.type())) {
+            positionLotRepository.insert(ASSET_1, transaction.quantity(), transaction.getBuyAverageCost());
             if (optionalPosition.isEmpty()) {
-                positionRepository.insert(new Position(ASSET_1, transaction.quantity(), transaction.getAverageCost(), transaction.getTotalCost(), BigDecimal.ZERO));
+                positionRepository.insert(new Position(ASSET_1, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO));
             } else {
-                positionRepository.update(getUpdatedPosition(transaction, optionalPosition.get()));
+                positionRepository.update(getUpdatedPositionForBuy(transaction, optionalPosition.get()));
             }
         }
-    }
 
-    private Position getUpdatedPosition(Transaction transaction, Position existingPosition) {
-        int newQuantity = existingPosition.quantity() + transaction.quantity();
-        var newTotalCost = existingPosition.totalCost().add(transaction.getTotalCost());
-        var newAverageCost = newTotalCost.divide(BigDecimal.valueOf(newQuantity), 6, RoundingMode.HALF_UP);
-        return new Position(
-                existingPosition.asset(),
-                newQuantity,
-                newAverageCost,
-                newTotalCost,
-                existingPosition.realizedProfitLoss());
-    }
-
-    private void validate(Transaction transaction, Optional<Position> optionalPosition) {
         if (SELL.equals(transaction.type())) {
             var position = requirePosition(optionalPosition);
             requireSufficientQuantity(position, transaction);
+            var fifoCostBasis = getFifoCostBasis(transaction);
+            positionRepository.update(getUpdatedPositionForSell(transaction, optionalPosition.get(), fifoCostBasis));
         }
+
+        transactionRepository.save(transaction);
+    }
+
+    private Position getUpdatedPositionForBuy(Transaction transaction, Position position) {
+        int newQuantity = position.quantity() + transaction.quantity();
+        var newTotalCost = position.totalCost().add(transaction.getBuyTotalCost());
+        var newAverageCost = newTotalCost.divide(BigDecimal.valueOf(newQuantity), 6, RoundingMode.HALF_UP);
+
+        return new Position(
+                position.asset(),
+                newQuantity,
+                newAverageCost,
+                newTotalCost,
+                position.realizedProfitLoss());
+    }
+
+    private Position getUpdatedPositionForSell(Transaction transaction, Position position, BigDecimal fifoCostBasis) {
+        int remainingPositionQuantity = position.quantity() - transaction.quantity();
+        var remainingTotalCost = position.totalCost().subtract(fifoCostBasis);
+        var updatedAverageCost = remainingPositionQuantity > 0 ?
+                remainingTotalCost.divide(BigDecimal.valueOf(remainingPositionQuantity), 6, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+        var updatedRealizedProfitLoss = position.realizedProfitLoss().add(transaction.getSellProceeds().subtract(fifoCostBasis));
+
+        return new Position(
+                position.asset(),
+                remainingPositionQuantity,
+                remainingTotalCost,
+                updatedAverageCost,
+                updatedRealizedProfitLoss
+        );
+    }
+
+    private BigDecimal getFifoCostBasis(Transaction transaction) {
+        int remainingTransactionQuantity = transaction.quantity();
+        var fifoCostBasis = BigDecimal.ZERO;
+        while (remainingTransactionQuantity > 0) {
+            int newPositionLotQuantity;
+            var positionLot = positionLotRepository.getFirstWithRemainingQuantity();
+            if (remainingTransactionQuantity > positionLot.qtyRemaining()) {
+                fifoCostBasis = fifoCostBasis.add(positionLot.unitCost().multiply(BigDecimal.valueOf(positionLot.qtyRemaining())));
+                remainingTransactionQuantity -= positionLot.qtyRemaining();
+                newPositionLotQuantity = 0;
+            } else {
+                fifoCostBasis = fifoCostBasis.add(positionLot.unitCost().multiply(BigDecimal.valueOf(remainingTransactionQuantity)));
+                remainingTransactionQuantity = 0;
+                newPositionLotQuantity = positionLot.qtyRemaining() - remainingTransactionQuantity;
+            }
+            positionLotRepository.updateQuantity(positionLot.id(), newPositionLotQuantity);
+        }
+        return fifoCostBasis;
     }
 
     private Position requirePosition(Optional<Position> optionalPosition) {

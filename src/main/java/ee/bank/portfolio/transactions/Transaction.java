@@ -13,12 +13,15 @@ public record Transaction(
         BigDecimal price,
         BigDecimal fee
 ) {
-    public BigDecimal getTotalCost(){
+    public BigDecimal getBuyTotalCost(){
        return price().multiply(BigDecimal.valueOf(quantity())).add(fee());
     }
 
-    public BigDecimal getAverageCost(){
-        return getTotalCost().divide(BigDecimal.valueOf(quantity()), 6, RoundingMode.HALF_UP);
+    public BigDecimal getBuyAverageCost(){
+        return getBuyTotalCost().divide(BigDecimal.valueOf(quantity()), 6, RoundingMode.HALF_UP);
+    }
 
+    public BigDecimal getSellProceeds(){
+        return price().multiply(BigDecimal.valueOf(quantity())).subtract(fee());
     }
 }
