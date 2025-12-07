@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 public class CalculationService {
 
-    private static final String ASSET_1 = "ASSET_1";
+    public static final String ASSET_1 = "ASSET_1";
     private static final String BUY = "buy";
     private static final String SELL = "sell";
     private final TransactionRepository transactionRepository;

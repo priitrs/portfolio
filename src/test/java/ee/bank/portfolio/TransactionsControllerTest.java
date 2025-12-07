@@ -1,5 +1,7 @@
 package ee.bank.portfolio;
 
+import ee.bank.portfolio.positionlots.PositionLotRepository;
+import ee.bank.portfolio.positions.PositionRepository;
 import ee.bank.portfolio.transactions.Transaction;
 import ee.bank.portfolio.transactions.TransactionRepository;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+import static ee.bank.portfolio.CalculationService.ASSET_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,7 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TransactionsControllerTest {
 
     @Autowired MockMvc mockMvc;
+    @Autowired private TransactionsController controller;
     @Autowired private TransactionRepository transactionRepository;
+    @Autowired private PositionLotRepository positionLotRepository;
+    @Autowired private PositionRepository positionRepository;
 
     @Container
     @ServiceConnection
@@ -45,7 +51,7 @@ class TransactionsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].type").value(buyTransaction.type()))
-                .andExpect(jsonPath("$[1].type").value(sellTransaction.type()));;
+                .andExpect(jsonPath("$[1].type").value(sellTransaction.type()));
     }
 
     @Test @Transactional
@@ -69,5 +75,42 @@ class TransactionsControllerTest {
         var result = transactionRepository.getAll();
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().type()).isEqualTo("buy");
+    }
+
+    @Test @Transactional
+    void addTransaction_firstIsBuyOrder() {
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+
+        var positionLots = positionLotRepository.getAll();
+        assertThat(positionLots.size()).isEqualTo(1);
+        var positionLot = positionLots.getFirst();
+        assertThat(positionLot.asset()).isEqualTo(ASSET_1);
+        assertThat(positionLot.qtyRemaining()).isEqualTo(2);
+        assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
+        var position = positionRepository.getByAsset(ASSET_1);
+        assertThat(position.isPresent()).isTrue();
+        assertThat(position.get().quantity()).isEqualTo(2);
+        assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
+        assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test @Transactional
+    void addTransaction_secondIsBuyOrder() {
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "buy", 4, BigDecimal.valueOf(11), BigDecimal.valueOf(4)));
+
+        var positionLots = positionLotRepository.getAll();
+        assertThat(positionLots.size()).isEqualTo(2);
+        var positionLot = positionLots.get(1);
+        assertThat(positionLot.asset()).isEqualTo(ASSET_1);
+        assertThat(positionLot.qtyRemaining()).isEqualTo(4);
+        assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        var position = positionRepository.getByAsset(ASSET_1);
+        assertThat(position.isPresent()).isTrue();
+        assertThat(position.get().quantity()).isEqualTo(6);
+        assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(10));
+        assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(60));
+        assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 }
