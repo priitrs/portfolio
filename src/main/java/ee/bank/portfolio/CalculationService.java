@@ -35,19 +35,27 @@ public class CalculationService {
     public void handleAddTransaction(Transaction transaction) {
         var optionalPosition = positionRepository.getByAsset(DEFAULT_ASSET);
         if (BUY.equals(transaction.type())) {
-            positionLotRepository.insert(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost());
-            if (optionalPosition.isEmpty()) {
-                positionRepository.insert(new Position(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO));
-            } else {
-                positionRepository.update(getUpdatedPositionForBuy(transaction, optionalPosition.get()));
-            }
+            handleBuy(transaction, optionalPosition);
         } else if (SELL.equals(transaction.type())) {
-            var position = requirePosition(optionalPosition);
-            requireSufficientQuantity(position, transaction);
-            var fifoCostBasis = getFifoCostBasis(transaction);
-            positionRepository.update(getUpdatedPositionForSell(transaction, position, fifoCostBasis));
+            handleSell(transaction, optionalPosition);
         }
         transactionRepository.save(transaction);
+    }
+
+    private void handleBuy(Transaction transaction, Optional<Position> optionalPosition) {
+        positionLotRepository.insert(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost());
+        if (optionalPosition.isEmpty()) {
+            positionRepository.insert(new Position(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO));
+        } else {
+            positionRepository.update(getUpdatedPositionForBuy(transaction, optionalPosition.get()));
+        }
+    }
+
+    private void handleSell(Transaction transaction, Optional<Position> optionalPosition) {
+        var position = requirePosition(optionalPosition);
+        requireSufficientQuantity(position, transaction);
+        var fifoCostBasis = processPositionLotsForFifoCostBasis(transaction);
+        positionRepository.update(getUpdatedPositionForSell(transaction, position, fifoCostBasis));
     }
 
     private Position getUpdatedPositionForBuy(Transaction transaction, Position position) {
@@ -75,13 +83,13 @@ public class CalculationService {
         return new Position(
                 position.asset(),
                 remainingPositionQuantity,
-                remainingTotalCost,
                 updatedAverageCost,
+                remainingTotalCost,
                 updatedRealizedProfitLoss
         );
     }
 
-    private BigDecimal getFifoCostBasis(Transaction transaction) {
+    private BigDecimal processPositionLotsForFifoCostBasis(Transaction transaction) {
         int remainingTransactionQuantity = transaction.quantity();
         var fifoCostBasis = BigDecimal.ZERO;
         while (remainingTransactionQuantity > 0) {
@@ -93,8 +101,8 @@ public class CalculationService {
                 newPositionLotQuantity = 0;
             } else {
                 fifoCostBasis = fifoCostBasis.add(positionLot.unitCost().multiply(BigDecimal.valueOf(remainingTransactionQuantity)));
-                remainingTransactionQuantity = 0;
                 newPositionLotQuantity = positionLot.qtyRemaining() - remainingTransactionQuantity;
+                remainingTransactionQuantity = 0;
             }
             positionLotRepository.updateQuantity(positionLot.id(), newPositionLotQuantity);
         }

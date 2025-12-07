@@ -79,42 +79,29 @@ class TransactionsControllerTest {
     }
 
     @Test @Transactional
-    void addTransaction_firstIsBuyOrder() {
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
-
-        var positionLots = positionLotRepository.getAll();
-        assertThat(positionLots.size()).isEqualTo(1);
-        var positionLot = positionLots.getFirst();
-        assertThat(positionLot.qtyRemaining()).isEqualTo(2);
-        assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
-        var position = positionRepository.getByAsset(DEFAULT_ASSET);
-        assertThat(position.isPresent()).isTrue();
-        assertThat(position.get().quantity()).isEqualTo(2);
-        assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
-        assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
-        assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test @Transactional
-    void addTransaction_secondIsBuyOrder() {
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "buy", 4, BigDecimal.valueOf(11), BigDecimal.valueOf(4)));
+    void addTransaction_differentOrderTypes() {
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 1, BigDecimal.valueOf(10), BigDecimal.valueOf(1)));
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:30:00Z"), "buy", 3, BigDecimal.valueOf(11), BigDecimal.valueOf(3)));
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(2)));
 
         var positionLots = positionLotRepository.getAll();
         assertThat(positionLots.size()).isEqualTo(2);
-        var positionLot = positionLots.get(1);
-        assertThat(positionLot.qtyRemaining()).isEqualTo(4);
-        assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        var positionLot = positionLots.getFirst();
+        assertThat(positionLot.qtyRemaining()).isEqualTo(0);
+        assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(11));
+        var positionLot2 = positionLots.get(1);
+        assertThat(positionLot2.qtyRemaining()).isEqualTo(1);
+        assertThat(positionLot2.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
         var position = positionRepository.getByAsset(DEFAULT_ASSET);
         assertThat(position.isPresent()).isTrue();
-        assertThat(position.get().quantity()).isEqualTo(6);
-        assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(10));
-        assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(60));
-        assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(position.get().quantity()).isEqualTo(1);
+        assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.valueOf(23));
     }
 
     @Test @Transactional
-    void addTransaction_firstIsSellOrder() {
+    void addTransaction_firstIsSellOrder_noPosition() {
         var transaction = new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "sell", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2));
         assertThatThrownBy(() -> controller.addTransaction(transaction))
                 .isInstanceOf(TransactionException.class)
@@ -130,5 +117,4 @@ class TransactionsControllerTest {
                 .isInstanceOf(TransactionException.class)
                 .hasMessage("Existing position is too small for sell order. Position qty: 2, transaction qty: 4");
     }
-
 }
