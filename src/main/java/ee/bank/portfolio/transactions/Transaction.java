@@ -8,7 +8,7 @@ public record Transaction(
         UUID id,
         OffsetDateTime timestamp,
         String type,
-        Integer quantity,
+        int quantity,
         BigDecimal price,
         BigDecimal fee
 ) {

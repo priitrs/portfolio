@@ -6,22 +6,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/portfolio")
-public class Controller {
+@RequestMapping("/api/portfolio/transactions")
+public class TransactionsController {
 
     private final CalculationService calculationService;
 
-    public Controller(CalculationService calculationService) {
+    public TransactionsController(CalculationService calculationService) {
         this.calculationService = calculationService;
     }
 
-    @GetMapping("/transactions")
+    @GetMapping()
     public List<Transaction> getAllTransactions(){
         return calculationService.getAllTransactions();
     }
 
-    @PostMapping("/transactions")
+    @PostMapping()
     public void addTransaction(@RequestBody Transaction transaction){
-        calculationService.addTransaction(transaction);
+        calculationService.handleAddTransaction(transaction);
     }
 }

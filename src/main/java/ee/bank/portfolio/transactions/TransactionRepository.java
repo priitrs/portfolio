@@ -29,8 +29,8 @@ public class TransactionRepository {
         return jdbcTemplate.query("SELECT * FROM transactions;", transactionRowMapper);
     }
 
-    public void save(Transaction t) {
-        jdbcTemplate.update("INSERT INTO transactions (timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?);",
-                t.timestamp(), t.type(), t.quantity(), t.price(), t.fee());
+    public Transaction save(Transaction t) {
+        return jdbcTemplate.queryForObject("INSERT INTO transactions (timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?) RETURNING *;",
+                transactionRowMapper, t.timestamp(), t.type(), t.quantity(), t.price(), t.fee());
     }
 }
