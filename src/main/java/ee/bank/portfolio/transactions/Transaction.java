@@ -2,12 +2,12 @@ package ee.bank.portfolio.transactions;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public record Transaction(
         UUID id,
-        OffsetDateTime timestamp,
+        Instant timestamp,
         String type,
         int quantity,
         BigDecimal price,

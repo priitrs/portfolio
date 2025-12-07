@@ -1,0 +1,9 @@
+[
+  {
+  "timestamp": "2025-12-06T15:06:35.392Z",
+  "type": "buy",
+  "quantity": 50,
+  "price": 8,
+  "fee": 2
+  }
+]

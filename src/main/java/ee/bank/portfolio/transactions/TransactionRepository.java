@@ -14,7 +14,7 @@ public class TransactionRepository {
 
     private final RowMapper<Transaction> transactionRowMapper = (rs, rowNum) -> new Transaction(
             rs.getObject("id", UUID.class),
-            rs.getObject("timestamp", java.time.OffsetDateTime.class),
+            rs.getTimestamp("timestamp").toInstant(),
             rs.getString("type"),
             rs.getInt("quantity"),
             rs.getBigDecimal("price"),
@@ -31,6 +31,6 @@ public class TransactionRepository {
 
     public Transaction save(Transaction t) {
         return jdbcTemplate.queryForObject("INSERT INTO transactions (timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?) RETURNING *;",
-                transactionRowMapper, t.timestamp(), t.type(), t.quantity(), t.price(), t.fee());
+                transactionRowMapper, java.sql.Timestamp.from(t.timestamp()), t.type(), t.quantity(), t.price(), t.fee());
     }
 }

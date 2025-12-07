@@ -22,6 +22,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-liquibase")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+	implementation("com.fasterxml.jackson.core:jackson-databind")
+	implementation("org.springframework.boot:spring-boot-starter-json")
 	runtimeOnly("org.postgresql:postgresql")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 
 import static ee.bank.portfolio.CalculationService.DEFAULT_ASSET;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,8 +45,8 @@ class TransactionsControllerTest {
 
     @Test @Transactional
     void getAllTransactions() throws Exception {
-        var buyTransaction = transactionRepository.save(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
-        var sellTransaction = transactionRepository.save(new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        var buyTransaction = transactionRepository.save(new Transaction(null, Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        var sellTransaction = transactionRepository.save(new Transaction(null, Instant.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
 
         mockMvc.perform(get("/api/portfolio/transactions"))
                 .andExpect(status().isOk())
@@ -80,9 +80,9 @@ class TransactionsControllerTest {
 
     @Test @Transactional
     void addTransaction_differentOrderTypes() {
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 1, BigDecimal.valueOf(10), BigDecimal.valueOf(1)));
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:30:00Z"), "buy", 3, BigDecimal.valueOf(11), BigDecimal.valueOf(3)));
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(2)));
+        controller.addTransaction(new Transaction(null, Instant.parse("2024-01-01T10:00:00Z"), "buy", 1, BigDecimal.valueOf(10), BigDecimal.valueOf(1)));
+        controller.addTransaction(new Transaction(null, Instant.parse("2024-01-01T10:30:00Z"), "buy", 3, BigDecimal.valueOf(11), BigDecimal.valueOf(3)));
+        controller.addTransaction(new Transaction(null, Instant.parse("2024-01-01T11:00:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(2)));
 
         var positionLots = positionLotRepository.getAll();
         assertThat(positionLots.size()).isEqualTo(2);
@@ -102,7 +102,7 @@ class TransactionsControllerTest {
 
     @Test @Transactional
     void addTransaction_firstIsSellOrder_noPosition() {
-        var transaction = new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "sell", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2));
+        var transaction = new Transaction(null, Instant.parse("2024-01-01T10:00:00Z"), "sell", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2));
         assertThatThrownBy(() -> controller.addTransaction(transaction))
                 .isInstanceOf(TransactionException.class)
                 .hasMessage("Position does not exist for sell order. Asset: ASSET_1");
@@ -110,8 +110,8 @@ class TransactionsControllerTest {
 
     @Test @Transactional
     void addTransaction_secondIsSellOrder_tooSmallPosition() {
-        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
-        Transaction sellTransaction = new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "sell", 4, BigDecimal.valueOf(11), BigDecimal.valueOf(4));
+        controller.addTransaction(new Transaction(null, Instant.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        Transaction sellTransaction = new Transaction(null, Instant.parse("2024-01-01T11:00:00Z"), "sell", 4, BigDecimal.valueOf(11), BigDecimal.valueOf(4));
 
         assertThatThrownBy(() -> controller.addTransaction(sellTransaction))
                 .isInstanceOf(TransactionException.class)
