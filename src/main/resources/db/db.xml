@@ -5,6 +5,6 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <include file="/db/transactions.sql"/>
-<!--    <include file="/db/positions.sql"/>-->
-<!--    <include file="/db/test_data.sql"/>-->
+    <include file="/db/positions.sql"/>
+    <include file="/db/position_lots.sql"/>
 </databaseChangeLog>
