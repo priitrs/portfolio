@@ -22,7 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import static ee.bank.portfolio.service.CalculationService.DEFAULT_ASSET;
+import static ee.bank.portfolio.service.TransactionService.DEFAULT_ASSET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

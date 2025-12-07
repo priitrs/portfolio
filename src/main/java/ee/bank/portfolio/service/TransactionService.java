@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CalculationService {
+public class TransactionService {
 
     public static final String DEFAULT_ASSET = "ASSET_1";
     private static final String BUY = "buy";
@@ -23,7 +23,7 @@ public class CalculationService {
     private final PositionRepository positionRepository;
     private final PositionLotRepository positionLotRepository;
 
-    public CalculationService(TransactionRepository transactionRepository, PositionRepository positionRepository, PositionLotRepository positionLotRepository) {
+    public TransactionService(TransactionRepository transactionRepository, PositionRepository positionRepository, PositionLotRepository positionLotRepository) {
         this.transactionRepository = transactionRepository;
         this.positionRepository = positionRepository;
         this.positionLotRepository = positionLotRepository;
