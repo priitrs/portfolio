@@ -20,7 +20,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-import static ee.bank.portfolio.CalculationService.ASSET_1;
+import static ee.bank.portfolio.CalculationService.DEFAULT_ASSET;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -87,7 +87,7 @@ class TransactionsControllerTest {
         var positionLot = positionLots.getFirst();
         assertThat(positionLot.qtyRemaining()).isEqualTo(2);
         assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
-        var position = positionRepository.getByAsset(ASSET_1);
+        var position = positionRepository.getByAsset(DEFAULT_ASSET);
         assertThat(position.isPresent()).isTrue();
         assertThat(position.get().quantity()).isEqualTo(2);
         assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(6));
@@ -105,7 +105,7 @@ class TransactionsControllerTest {
         var positionLot = positionLots.get(1);
         assertThat(positionLot.qtyRemaining()).isEqualTo(4);
         assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
-        var position = positionRepository.getByAsset(ASSET_1);
+        var position = positionRepository.getByAsset(DEFAULT_ASSET);
         assertThat(position.isPresent()).isTrue();
         assertThat(position.get().quantity()).isEqualTo(6);
         assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(10));

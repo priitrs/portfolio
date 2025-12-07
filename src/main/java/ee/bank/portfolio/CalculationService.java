@@ -15,7 +15,7 @@ import java.util.Optional;
 @Service
 public class CalculationService {
 
-    public static final String ASSET_1 = "ASSET_1";
+    public static final String DEFAULT_ASSET = "ASSET_1";
     private static final String BUY = "buy";
     private static final String SELL = "sell";
     private final TransactionRepository transactionRepository;
@@ -33,24 +33,20 @@ public class CalculationService {
     }
 
     public void handleAddTransaction(Transaction transaction) {
-        Optional<Position> optionalPosition = positionRepository.getByAsset(ASSET_1);
-
+        var optionalPosition = positionRepository.getByAsset(DEFAULT_ASSET);
         if (BUY.equals(transaction.type())) {
-            positionLotRepository.insert(ASSET_1, transaction.quantity(), transaction.getBuyAverageCost());
+            positionLotRepository.insert(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost());
             if (optionalPosition.isEmpty()) {
-                positionRepository.insert(new Position(ASSET_1, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO));
+                positionRepository.insert(new Position(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO));
             } else {
                 positionRepository.update(getUpdatedPositionForBuy(transaction, optionalPosition.get()));
             }
-        }
-
-        if (SELL.equals(transaction.type())) {
+        } else if (SELL.equals(transaction.type())) {
             var position = requirePosition(optionalPosition);
             requireSufficientQuantity(position, transaction);
             var fifoCostBasis = getFifoCostBasis(transaction);
-            positionRepository.update(getUpdatedPositionForSell(transaction, optionalPosition.get(), fifoCostBasis));
+            positionRepository.update(getUpdatedPositionForSell(transaction, position, fifoCostBasis));
         }
-
         transactionRepository.save(transaction);
     }
 
@@ -64,7 +60,8 @@ public class CalculationService {
                 newQuantity,
                 newAverageCost,
                 newTotalCost,
-                position.realizedProfitLoss());
+                position.realizedProfitLoss()
+        );
     }
 
     private Position getUpdatedPositionForSell(Transaction transaction, Position position, BigDecimal fifoCostBasis) {
@@ -106,7 +103,7 @@ public class CalculationService {
 
     private Position requirePosition(Optional<Position> optionalPosition) {
         return optionalPosition.orElseThrow(() ->
-                new TransactionException("Position does not exist for sell order. Asset: " + ASSET_1));
+                new TransactionException("Position does not exist for sell order. Asset: %s".formatted(DEFAULT_ASSET)));
     }
 
     private void requireSufficientQuantity(Position position, Transaction transaction) {
