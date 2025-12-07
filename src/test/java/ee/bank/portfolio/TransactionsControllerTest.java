@@ -22,6 +22,7 @@ import java.time.OffsetDateTime;
 
 import static ee.bank.portfolio.CalculationService.ASSET_1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -113,4 +114,23 @@ class TransactionsControllerTest {
         assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(60));
         assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.ZERO);
     }
+
+    @Test @Transactional
+    void addTransaction_firstIsSellOrder() {
+        var transaction = new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "sell", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2));
+        assertThatThrownBy(() -> controller.addTransaction(transaction))
+                .isInstanceOf(TransactionException.class)
+                .hasMessage("Position does not exist for sell order. Asset: ASSET_1");
+    }
+
+    @Test @Transactional
+    void addTransaction_secondIsSellOrder_tooSmallPosition() {
+        controller.addTransaction(new Transaction(null, OffsetDateTime.parse("2024-01-01T10:00:00Z"), "buy", 2, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        Transaction sellTransaction = new Transaction(null, OffsetDateTime.parse("2024-01-01T11:00:00Z"), "sell", 4, BigDecimal.valueOf(11), BigDecimal.valueOf(4));
+
+        assertThatThrownBy(() -> controller.addTransaction(sellTransaction))
+                .isInstanceOf(TransactionException.class)
+                .hasMessage("Existing position is too small for sell order. Position qty: 2, transaction qty: 4");
+    }
+
 }

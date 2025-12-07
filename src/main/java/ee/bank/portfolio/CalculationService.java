@@ -34,7 +34,7 @@ public class CalculationService {
 
     public void handleAddTransaction(Transaction transaction) {
         Optional<Position> optionalPosition = positionRepository.getByAsset(ASSET_1);
-
+        validate(transaction, optionalPosition);
         transactionRepository.save(transaction);
         if (BUY.equals(transaction.type())){
             positionLotRepository.insert(ASSET_1, transaction.quantity(), transaction.getAverageCost());
@@ -57,5 +57,24 @@ public class CalculationService {
                 newAverageCost,
                 newTotalCost,
                 existingPosition.realizedProfitLoss());
+    }
+
+    private void validate(Transaction transaction, Optional<Position> optionalPosition) {
+        if (SELL.equals(transaction.type())) {
+            var position = requirePosition(optionalPosition);
+            requireSufficientQuantity(position, transaction);
+        }
+    }
+
+    private Position requirePosition(Optional<Position> optionalPosition) {
+        return optionalPosition.orElseThrow(() ->
+                new TransactionException("Position does not exist for sell order. Asset: " + ASSET_1));
+    }
+
+    private void requireSufficientQuantity(Position position, Transaction transaction) {
+        if (position.quantity() < transaction.quantity()) {
+            throw new TransactionException("Existing position is too small for sell order. Position qty: %s, transaction qty: %s"
+                    .formatted(position.quantity(), transaction.quantity()));
+        }
     }
 }
