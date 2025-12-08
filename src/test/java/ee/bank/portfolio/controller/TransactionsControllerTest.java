@@ -1,6 +1,5 @@
-package ee.bank.portfolio;
+package ee.bank.portfolio.controller;
 
-import ee.bank.portfolio.controller.TransactionsController;
 import ee.bank.portfolio.exception.TransactionException;
 import ee.bank.portfolio.repository.PositionLotRepository;
 import ee.bank.portfolio.repository.PositionRepository;

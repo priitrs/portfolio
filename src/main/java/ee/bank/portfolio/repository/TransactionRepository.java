@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,4 +35,11 @@ public class TransactionRepository {
         return jdbcTemplate.queryForObject("INSERT INTO transactions (timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?) RETURNING *;",
                 transactionRowMapper, java.sql.Timestamp.from(t.timestamp()), t.type(), t.quantity(), t.price(), t.fee());
     }
+
+    public BigDecimal findTotalInvested() {
+        BigDecimal total = jdbcTemplate.queryForObject(
+                "SELECT SUM(quantity * price + fee) AS total_sum FROM transactions WHERE type = 'buy';",
+                BigDecimal.class
+        );
+        return total != null ? total : BigDecimal.ZERO;    }
 }

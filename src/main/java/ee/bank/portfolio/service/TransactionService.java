@@ -1,12 +1,13 @@
 package ee.bank.portfolio.service;
 
 import ee.bank.portfolio.exception.TransactionException;
-import ee.bank.portfolio.repository.PositionLotRepository;
 import ee.bank.portfolio.model.Position;
-import ee.bank.portfolio.repository.PositionRepository;
 import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.repository.PositionLotRepository;
+import ee.bank.portfolio.repository.PositionRepository;
 import ee.bank.portfolio.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -33,6 +34,7 @@ public class TransactionService {
         return transactionRepository.getAll();
     }
 
+    @Transactional
     public void handleAddTransaction(Transaction transaction) {
         var optionalPosition = positionRepository.getByAsset(DEFAULT_ASSET);
         if (BUY.equals(transaction.type())) {
@@ -79,7 +81,7 @@ public class TransactionService {
         var updatedAverageCost = remainingPositionQuantity > 0 ?
                 remainingTotalCost.divide(BigDecimal.valueOf(remainingPositionQuantity), 6, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
-        var updatedRealizedProfitLoss = position.realizedProfitLoss().add(transaction.getSellProceeds().subtract(fifoCostBasis));
+        var updatedRealizedProfitLoss = position.realizedProfitLoss().add(transaction.getSellProceeds()).subtract(fifoCostBasis);
 
         return new Position(
                 position.asset(),

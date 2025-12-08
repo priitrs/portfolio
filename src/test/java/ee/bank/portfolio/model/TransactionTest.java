@@ -1,6 +1,5 @@
-package ee.bank.portfolio.transactions;
+package ee.bank.portfolio.model;
 
-import ee.bank.portfolio.model.Transaction;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
