@@ -44,7 +44,8 @@ public class TransactionService {
     private void handleBuy(Transaction transaction, Optional<Position> optionalPosition) {
         positionLotRepository.insert(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost());
         if (optionalPosition.isEmpty()) {
-            positionRepository.insert(new Position(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO));
+            var newPosition = new Position(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO);
+            positionRepository.insert(newPosition);
         } else {
             positionRepository.update(getUpdatedPositionForBuy(transaction, optionalPosition.get()));
         }
@@ -62,13 +63,7 @@ public class TransactionService {
         var newTotalCost = position.totalCost().add(transaction.getBuyTotalCost());
         var newAverageCost = newTotalCost.divide(BigDecimal.valueOf(newQuantity), 6, RoundingMode.HALF_UP);
 
-        return new Position(
-                position.asset(),
-                newQuantity,
-                newAverageCost,
-                newTotalCost,
-                position.realizedProfitLoss()
-        );
+        return position.withQuantity(newQuantity).withAverageCost(newAverageCost).withTotalCost(newTotalCost);
     }
 
     private Position getUpdatedPositionForSell(Transaction transaction, Position position, BigDecimal fifoCostBasis) {
@@ -79,13 +74,11 @@ public class TransactionService {
                 : BigDecimal.ZERO;
         var updatedRealizedProfitLoss = position.realizedProfitLoss().add(transaction.getSellProceeds()).subtract(fifoCostBasis);
 
-        return new Position(
-                position.asset(),
-                remainingPositionQuantity,
-                updatedAverageCost,
-                remainingTotalCost,
-                updatedRealizedProfitLoss
-        );
+        return position
+                .withQuantity(remainingPositionQuantity)
+                .withAverageCost(updatedAverageCost)
+                .withTotalCost(remainingTotalCost)
+                .withRealizedProfitLoss(updatedRealizedProfitLoss);
     }
 
     private BigDecimal processPositionLotsForFifoCostBasis(Transaction transaction) {
