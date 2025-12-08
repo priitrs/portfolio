@@ -6,7 +6,7 @@ docker compose up -d db
 ```
 
 ---
-### When starting application it will automatically add 1000 transactions to the database and recalculate calculate position
+### When starting the application, 1000 transactions will be automatically added to the database and position will be recalculated.
 
 
 ### Swagger:
