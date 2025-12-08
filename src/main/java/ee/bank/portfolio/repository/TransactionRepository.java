@@ -1,6 +1,7 @@
 package ee.bank.portfolio.repository;
 
 import ee.bank.portfolio.model.Transaction;
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
+@AllArgsConstructor
 public class TransactionRepository {
 
     private final JdbcTemplate jdbcTemplate;
@@ -22,10 +24,6 @@ public class TransactionRepository {
             rs.getBigDecimal("price"),
             rs.getBigDecimal("fee")
     );
-
-    public TransactionRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public List<Transaction> getAll(){
         return jdbcTemplate.query("SELECT * FROM transactions;", transactionRowMapper);

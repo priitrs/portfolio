@@ -1,6 +1,7 @@
 package ee.bank.portfolio.repository;
 
 import ee.bank.portfolio.model.Position;
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
+@AllArgsConstructor
 public class PositionRepository {
 
     private final JdbcTemplate jdbcTemplate;
@@ -19,10 +21,6 @@ public class PositionRepository {
             rs.getBigDecimal("total_cost"),
             rs.getBigDecimal("realized_pl")
     );
-
-    public PositionRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public Optional<Position> getByAsset(String asset) {
         return jdbcTemplate.query("SELECT * FROM positions WHERE asset = ?;", positionRowMapper, asset).stream().findFirst();

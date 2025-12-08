@@ -4,6 +4,7 @@ import ee.bank.portfolio.model.PortfolioProfitabilityDto;
 import ee.bank.portfolio.model.Position;
 import ee.bank.portfolio.repository.PositionRepository;
 import ee.bank.portfolio.repository.TransactionRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -12,15 +13,11 @@ import java.math.RoundingMode;
 import static ee.bank.portfolio.service.TransactionService.DEFAULT_ASSET;
 
 @Service
+@AllArgsConstructor
 public class PortfolioService {
 
     private final TransactionRepository transactionRepository;
     private final PositionRepository positionRepository;
-
-    public PortfolioService(TransactionRepository transactionRepository, PositionRepository positionRepository) {
-        this.transactionRepository = transactionRepository;
-        this.positionRepository = positionRepository;
-    }
 
     public PortfolioProfitabilityDto getProfitability() {
         var position = positionRepository.getByAsset(DEFAULT_ASSET)

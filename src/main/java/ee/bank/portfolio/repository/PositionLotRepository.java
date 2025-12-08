@@ -1,6 +1,7 @@
 package ee.bank.portfolio.repository;
 
 import ee.bank.portfolio.model.PositionLot;
+import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -9,13 +10,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
+@AllArgsConstructor
 public class PositionLotRepository {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public PositionLotRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     private final RowMapper<PositionLot> positionLotRowMapper = (rs, rowNum) -> new PositionLot(
             rs.getLong("id"),

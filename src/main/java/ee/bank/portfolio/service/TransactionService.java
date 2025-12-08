@@ -6,6 +6,7 @@ import ee.bank.portfolio.model.Transaction;
 import ee.bank.portfolio.repository.PositionLotRepository;
 import ee.bank.portfolio.repository.PositionRepository;
 import ee.bank.portfolio.repository.TransactionRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class TransactionService {
 
     public static final String DEFAULT_ASSET = "ASSET_1";
@@ -23,12 +25,6 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final PositionRepository positionRepository;
     private final PositionLotRepository positionLotRepository;
-
-    public TransactionService(TransactionRepository transactionRepository, PositionRepository positionRepository, PositionLotRepository positionLotRepository) {
-        this.transactionRepository = transactionRepository;
-        this.positionRepository = positionRepository;
-        this.positionLotRepository = positionLotRepository;
-    }
 
     public List<Transaction> getAllTransactions() {
         return transactionRepository.getAll();
