@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,6 +25,10 @@ public class PositionRepository {
 
     public Optional<Position> getByAsset(String asset) {
         return jdbcTemplate.query("SELECT * FROM positions WHERE asset = ?;", positionRowMapper, asset).stream().findFirst();
+    }
+
+    public List<Position> getAll(){
+        return jdbcTemplate.query("SELECT * FROM positions;", positionRowMapper);
     }
 
     public void insert(Position p) {

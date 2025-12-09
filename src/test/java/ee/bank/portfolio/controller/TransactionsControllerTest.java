@@ -85,7 +85,7 @@ class TransactionsControllerTest {
         controller.addTransaction(new Transaction(null, Instant.parse("2024-01-01T10:30:00Z"), "buy", 3, BigDecimal.valueOf(11), BigDecimal.valueOf(3)));
         controller.addTransaction(new Transaction(null, Instant.parse("2024-01-01T11:00:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(2)));
 
-        var positionLots = positionLotRepository.getAll();
+        var positionLots = positionLotRepository.getAllByAsset(DEFAULT_ASSET);
         assertThat(positionLots.size()).isEqualTo(2);
         var positionLot = positionLots.getFirst();
         assertThat(positionLot.qtyRemaining()).isEqualTo(0);
