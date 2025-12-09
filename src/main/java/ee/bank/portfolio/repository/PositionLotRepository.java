@@ -28,7 +28,7 @@ public class PositionLotRepository {
     }
 
     public List<PositionLot> getAllByAsset(String asset){
-        return jdbcTemplate.query("SELECT * FROM position_lots WHERE asset = ?;", positionLotRowMapper, asset);
+        return jdbcTemplate.query("SELECT * FROM position_lots WHERE asset = ? ORDER BY id;", positionLotRowMapper, asset);
     }
 
     public PositionLot getFirstWithRemainingQuantity(){
