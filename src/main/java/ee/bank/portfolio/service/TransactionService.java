@@ -19,7 +19,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class TransactionService {
 
-    public static final String DEFAULT_ASSET = "ASSET_1";
     private static final String BUY = "buy";
     private static final String SELL = "sell";
     private final TransactionRepository transactionRepository;
@@ -32,7 +31,7 @@ public class TransactionService {
 
     @Transactional
     public void handleAddTransaction(Transaction transaction) {
-        var optionalPosition = positionRepository.getByAsset(DEFAULT_ASSET);
+        var optionalPosition = positionRepository.getByAsset(transaction.asset());
         if (BUY.equals(transaction.type())) {
             handleBuy(transaction, optionalPosition);
         } else if (SELL.equals(transaction.type())) {
@@ -42,9 +41,15 @@ public class TransactionService {
     }
 
     private void handleBuy(Transaction transaction, Optional<Position> optionalPosition) {
-        positionLotRepository.insert(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost());
+        positionLotRepository.insert(transaction.asset(), transaction.quantity(), transaction.getBuyAverageCost());
         if (optionalPosition.isEmpty()) {
-            var newPosition = new Position(DEFAULT_ASSET, transaction.quantity(), transaction.getBuyAverageCost(), transaction.getBuyTotalCost(), BigDecimal.ZERO);
+            var newPosition = new Position(
+                    transaction.asset(),
+                    transaction.quantity(),
+                    transaction.getBuyAverageCost(),
+                    transaction.getBuyTotalCost(),
+                    BigDecimal.ZERO
+            );
             positionRepository.insert(newPosition);
         } else {
             positionRepository.update(getUpdatedPositionForBuy(transaction, optionalPosition.get()));
@@ -52,7 +57,7 @@ public class TransactionService {
     }
 
     private void handleSell(Transaction transaction, Optional<Position> optionalPosition) {
-        var position = requirePosition(optionalPosition);
+        var position = requirePosition(optionalPosition, transaction.asset());
         requireSufficientQuantity(position, transaction);
         var fifoCostBasis = processPositionLotsForFifoCostBasis(transaction);
         positionRepository.update(getUpdatedPositionForSell(transaction, position, fifoCostBasis));
@@ -101,9 +106,9 @@ public class TransactionService {
         return fifoCostBasis;
     }
 
-    private Position requirePosition(Optional<Position> optionalPosition) {
+    private Position requirePosition(Optional<Position> optionalPosition, String asset) {
         return optionalPosition.orElseThrow(() ->
-                new TransactionException("Position does not exist for sell order. Asset: %s".formatted(DEFAULT_ASSET)));
+                new TransactionException("Position does not exist for sell order. Asset: %s".formatted(asset)));
     }
 
     private void requireSufficientQuantity(Position position, Transaction transaction) {

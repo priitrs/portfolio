@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public record Transaction(
         @JsonIgnore UUID id,
+        String asset,
         Instant timestamp,
         String type,
         int quantity,

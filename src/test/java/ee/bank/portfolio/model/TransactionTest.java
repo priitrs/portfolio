@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TransactionTest {
 
-    Transaction transaction = new Transaction(null, null, null, 2, BigDecimal.TEN, BigDecimal.ONE);
+    Transaction transaction = new Transaction(null, null, null, null,2, BigDecimal.TEN, BigDecimal.ONE);
 
     @Test
     void getBuyTotalCost() {

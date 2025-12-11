@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import static java.sql.Timestamp.*;
+
 @Repository
 @AllArgsConstructor
 public class TransactionRepository {
@@ -18,6 +20,7 @@ public class TransactionRepository {
 
     private final RowMapper<Transaction> transactionRowMapper = (rs, rowNum) -> new Transaction(
             rs.getObject("id", UUID.class),
+            rs.getString("asset"),
             rs.getTimestamp("timestamp").toInstant(),
             rs.getString("type"),
             rs.getInt("quantity"),
@@ -26,18 +29,16 @@ public class TransactionRepository {
     );
 
     public List<Transaction> getAll(){
-        return jdbcTemplate.query("SELECT * FROM transactions;", transactionRowMapper);
+        return jdbcTemplate.query("SELECT * FROM transactions ORDER BY timestamp;", transactionRowMapper);
     }
 
     public Transaction save(Transaction t) {
-        return jdbcTemplate.queryForObject("INSERT INTO transactions (timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?) RETURNING *;",
-                transactionRowMapper, java.sql.Timestamp.from(t.timestamp()), t.type(), t.quantity(), t.price(), t.fee());
+        return jdbcTemplate.queryForObject("INSERT INTO transactions (asset, timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;",
+                transactionRowMapper, t.asset(), from(t.timestamp()), t.type(), t.quantity(), t.price(), t.fee());
     }
 
-    public BigDecimal findTotalInvested() {
-        BigDecimal total = jdbcTemplate.queryForObject(
-                "SELECT SUM(quantity * price + fee) AS total_sum FROM transactions WHERE type = 'buy';",
-                BigDecimal.class
-        );
-        return total != null ? total : BigDecimal.ZERO;    }
+    public BigDecimal findTotalInvested(String asset) {
+        String query = "SELECT SUM(quantity * price + fee) AS total_sum FROM transactions WHERE type = 'buy' AND asset = ?;";
+        return jdbcTemplate.queryForObject(query, BigDecimal.class, asset);
+    }
 }

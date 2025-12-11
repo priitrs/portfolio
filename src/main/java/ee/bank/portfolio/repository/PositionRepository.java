@@ -28,7 +28,7 @@ public class PositionRepository {
     }
 
     public List<Position> getAll(){
-        return jdbcTemplate.query("SELECT * FROM positions;", positionRowMapper);
+        return jdbcTemplate.query("SELECT * FROM positions ORDER BY asset;", positionRowMapper);
     }
 
     public void insert(Position p) {

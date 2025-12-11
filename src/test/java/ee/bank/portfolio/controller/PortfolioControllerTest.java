@@ -1,5 +1,6 @@
 package ee.bank.portfolio.controller;
 
+import ee.bank.portfolio.model.AssetProfitabilityDto;
 import ee.bank.portfolio.model.Transaction;
 import ee.bank.portfolio.service.TransactionService;
 import org.junit.jupiter.api.Test;
@@ -31,17 +32,19 @@ class PortfolioControllerTest {
     @Test
     @Transactional
     void getProfitability() {
-        transactionService.handleAddTransaction(new Transaction(null, Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
-        transactionService.handleAddTransaction(new Transaction(null, Instant.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(6), BigDecimal.valueOf(3)));
+        transactionService.handleAddTransaction(new Transaction(null, "ASSET", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        transactionService.handleAddTransaction(new Transaction(null, "ASSET", Instant.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(6), BigDecimal.valueOf(3)));
 
         var result = controller.getProfitability();
 
-        assertThat(result.remainingQuantity()).isEqualTo(5);
-        assertThat(result.remainingAverageCost()).isEqualByComparingTo(BigDecimal.valueOf(5.2));
-        assertThat(result.remainingCostBasis()).isEqualByComparingTo(BigDecimal.valueOf(26));
-        assertThat(result.realizedProfitLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
-        assertThat(result.gainLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
-        assertThat(result.totalInvested()).isEqualByComparingTo(BigDecimal.valueOf(52));
-        assertThat(result.totalReturn()).isEqualByComparingTo(BigDecimal.valueOf(0.019231));
+        assertThat(result.size()).isEqualTo(1);
+        AssetProfitabilityDto profitabilityDto = result.getFirst();
+        assertThat(profitabilityDto.remainingQuantity()).isEqualTo(5);
+        assertThat(profitabilityDto.remainingAverageCost()).isEqualByComparingTo(BigDecimal.valueOf(5.2));
+        assertThat(profitabilityDto.remainingCostBasis()).isEqualByComparingTo(BigDecimal.valueOf(26));
+        assertThat(profitabilityDto.realizedProfitLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
+        assertThat(profitabilityDto.gainLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
+        assertThat(profitabilityDto.totalInvested()).isEqualByComparingTo(BigDecimal.valueOf(52));
+        assertThat(profitabilityDto.totalReturn()).isEqualByComparingTo(BigDecimal.valueOf(0.019231));
     }
 }

@@ -1,6 +1,6 @@
 package ee.bank.portfolio.controller;
 
-import ee.bank.portfolio.model.PortfolioProfitabilityDto;
+import ee.bank.portfolio.model.AssetProfitabilityDto;
 import ee.bank.portfolio.model.Position;
 import ee.bank.portfolio.model.PositionLot;
 import ee.bank.portfolio.repository.PositionLotRepository;
@@ -28,7 +28,7 @@ public class PortfolioController {
 
     @Operation(summary = "Get portfolio profitability")
     @GetMapping("/profitability")
-    public PortfolioProfitabilityDto getProfitability(){
+    public List<AssetProfitabilityDto> getProfitability(){
         return portfolioService.getProfitability();
     }
 
