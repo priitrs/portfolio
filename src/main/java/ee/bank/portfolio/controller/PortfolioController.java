@@ -40,7 +40,7 @@ public class PortfolioController {
 
     @Operation(summary = "Get positions lots")
     @GetMapping("/positions/{asset}/lots")
-    public List<PositionLot> getPositions(@PathVariable String asset){
+    public List<PositionLot> getPositionsLots(@PathVariable String asset){
         return positionLotRepository.getAllByAsset(asset);
     }
 }

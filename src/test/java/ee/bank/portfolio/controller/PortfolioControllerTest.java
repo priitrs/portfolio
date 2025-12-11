@@ -29,8 +29,7 @@ class PortfolioControllerTest {
     @ServiceConnection
     static JdbcDatabaseContainer<?> postgres = new PostgreSQLContainerProvider().newInstance("15");
 
-    @Test
-    @Transactional
+    @Test @Transactional
     void getProfitability() {
         transactionService.handleAddTransaction(new Transaction(null, "ASSET", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
         transactionService.handleAddTransaction(new Transaction(null, "ASSET", Instant.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(6), BigDecimal.valueOf(3)));
@@ -46,5 +45,25 @@ class PortfolioControllerTest {
         assertThat(profitabilityDto.gainLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
         assertThat(profitabilityDto.totalInvested()).isEqualByComparingTo(BigDecimal.valueOf(52));
         assertThat(profitabilityDto.totalReturn()).isEqualByComparingTo(BigDecimal.valueOf(0.019231));
+    }
+
+    @Test @Transactional
+    void getPositions() {
+        transactionService.handleAddTransaction(new Transaction(null, "ASSET_1", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        transactionService.handleAddTransaction(new Transaction(null, "ASSET_2", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+
+        var result = controller.getPositions();
+
+        assertThat(result.size()).isEqualTo(2);
+    }
+
+    @Test @Transactional
+    void getPositionsLots() {
+        transactionService.handleAddTransaction(new Transaction(null, "ASSET_1", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        transactionService.handleAddTransaction(new Transaction(null, "ASSET_2", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+
+        var result = controller.getPositionsLots("ASSET_2");
+
+        assertThat(result.size()).isEqualTo(1);
     }
 }
