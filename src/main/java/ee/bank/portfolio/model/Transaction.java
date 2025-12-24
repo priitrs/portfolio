@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record Transaction(
-        @JsonIgnore UUID id,
+        UUID id,
         String asset,
         Instant timestamp,
         String type,

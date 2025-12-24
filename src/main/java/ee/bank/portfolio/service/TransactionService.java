@@ -3,6 +3,7 @@ package ee.bank.portfolio.service;
 import ee.bank.portfolio.exception.TransactionException;
 import ee.bank.portfolio.model.Position;
 import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.model.TransactionDto;
 import ee.bank.portfolio.repository.PositionLotRepository;
 import ee.bank.portfolio.repository.PositionRepository;
 import ee.bank.portfolio.repository.TransactionRepository;
@@ -25,19 +26,29 @@ public class TransactionService {
     private final PositionRepository positionRepository;
     private final PositionLotRepository positionLotRepository;
 
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.getAll();
+    public List<TransactionDto> getAllTransactions() {
+        return transactionRepository.getAll().stream()
+                .map(t -> new TransactionDto(
+                                t.asset(),
+                                t.timestamp(),
+                                t.type(),
+                                t.quantity(),
+                                t.price(),
+                                t.fee()
+                        )
+                )
+                .toList();
     }
 
     @Transactional
-    public void handleAddTransaction(Transaction transaction) {
+    public void handleAddTransaction(TransactionDto transactionDto) {
+        var transaction = transactionRepository.save(transactionDto);
         var optionalPosition = positionRepository.getByAsset(transaction.asset());
         if (BUY.equals(transaction.type())) {
             handleBuy(transaction, optionalPosition);
         } else if (SELL.equals(transaction.type())) {
             handleSell(transaction, optionalPosition);
         }
-        transactionRepository.save(transaction);
     }
 
     private void handleBuy(Transaction transaction, Optional<Position> optionalPosition) {

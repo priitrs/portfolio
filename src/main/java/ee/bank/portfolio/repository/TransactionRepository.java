@@ -1,6 +1,7 @@
 package ee.bank.portfolio.repository;
 
 import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.model.TransactionDto;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -32,7 +33,7 @@ public class TransactionRepository {
         return jdbcTemplate.query("SELECT * FROM transactions ORDER BY timestamp;", transactionRowMapper);
     }
 
-    public Transaction save(Transaction t) {
+    public Transaction save(TransactionDto t) {
         return jdbcTemplate.queryForObject("INSERT INTO transactions (asset, timestamp, type, quantity, price, fee) VALUES (?, ?, ?, ?, ?, ?) RETURNING *;",
                 transactionRowMapper, t.asset(), from(t.timestamp()), t.type(), t.quantity(), t.price(), t.fee());
     }

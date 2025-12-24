@@ -2,7 +2,7 @@ package ee.bank.portfolio.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ee.bank.portfolio.model.Transaction;
+import ee.bank.portfolio.model.TransactionDto;
 import ee.bank.portfolio.service.TransactionService;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -26,7 +26,7 @@ public class TransactionDataLoader {
     public void loadInitialDataIfNeeded() throws IOException {
         if (transactionService.getAllTransactions().isEmpty()) {
             var resource = new ClassPathResource("transactions/data.json");
-            List<Transaction> transactions = objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
+            List<TransactionDto> transactions = objectMapper.readValue(resource.getInputStream(), new TypeReference<>() {});
             transactions.forEach(transactionService::handleAddTransaction);
         }
     }
