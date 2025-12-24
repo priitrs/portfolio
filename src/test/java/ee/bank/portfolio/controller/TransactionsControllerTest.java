@@ -107,6 +107,7 @@ class TransactionsControllerTest {
         assertThatThrownBy(() -> controller.addTransaction(transaction))
                 .isInstanceOf(TransactionException.class)
                 .hasMessage("Position does not exist for sell order. Asset: ASSET");
+        assertThat(transactionRepository.getAll()).isEmpty();
     }
 
     @Test @Transactional
@@ -117,5 +118,7 @@ class TransactionsControllerTest {
         assertThatThrownBy(() -> controller.addTransaction(sellTransaction))
                 .isInstanceOf(TransactionException.class)
                 .hasMessage("Existing position is too small for sell order. Position qty: 2, transaction qty: 4");
+        assertThat(transactionRepository.getAll().size()).isEqualTo(1);
+
     }
 }
