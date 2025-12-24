@@ -28,30 +28,24 @@ public class TransactionService {
 
     public List<TransactionDto> getAllTransactions() {
         return transactionRepository.getAll().stream()
-                .map(t -> new TransactionDto(
-                                t.asset(),
-                                t.timestamp(),
-                                t.type(),
-                                t.quantity(),
-                                t.price(),
-                                t.fee()
-                        )
-                )
+                .map(Transaction::toDto)
                 .toList();
     }
 
     @Transactional
     public void handleAddTransaction(TransactionDto transactionDto) {
-        var transaction = transactionRepository.save(transactionDto);
-        var optionalPosition = positionRepository.getByAsset(transaction.asset());
-        if (BUY.equals(transaction.type())) {
-            handleBuy(transaction, optionalPosition);
-        } else if (SELL.equals(transaction.type())) {
-            handleSell(transaction, optionalPosition);
+        var optionalPosition = positionRepository.getByAsset(transactionDto.asset());
+        switch (transactionDto.type()) {
+            case BUY  -> handleBuy(transactionDto, optionalPosition);
+            case SELL -> handleSell(transactionDto, optionalPosition);
+            default   -> throw new TransactionException(
+                    "Invalid transaction type: %s".formatted(transactionDto.type())
+            );
         }
     }
 
-    private void handleBuy(Transaction transaction, Optional<Position> optionalPosition) {
+    private void handleBuy(TransactionDto transactionDto, Optional<Position> optionalPosition) {
+        var transaction = transactionRepository.save(transactionDto);
         positionLotRepository.insert(transaction.asset(), transaction.quantity(), transaction.getBuyAverageCost());
         if (optionalPosition.isEmpty()) {
             var newPosition = new Position(
@@ -67,9 +61,10 @@ public class TransactionService {
         }
     }
 
-    private void handleSell(Transaction transaction, Optional<Position> optionalPosition) {
-        var position = requirePosition(optionalPosition, transaction.asset());
-        requireSufficientQuantity(position, transaction);
+    private void handleSell(TransactionDto transactionDto, Optional<Position> optionalPosition) {
+        var position = requirePosition(optionalPosition, transactionDto.asset());
+        requireSufficientQuantity(position, transactionDto);
+        var transaction = transactionRepository.save(transactionDto);
         var fifoCostBasis = processPositionLotsForFifoCostBasis(transaction);
         positionRepository.update(getUpdatedPositionForSell(transaction, position, fifoCostBasis));
     }
@@ -122,7 +117,7 @@ public class TransactionService {
                 new TransactionException("Position does not exist for sell order. Asset: %s".formatted(asset)));
     }
 
-    private void requireSufficientQuantity(Position position, Transaction transaction) {
+    private void requireSufficientQuantity(Position position, TransactionDto transaction) {
         if (position.quantity() < transaction.quantity()) {
             throw new TransactionException("Existing position is too small for sell order. Position qty: %s, transaction qty: %s"
                     .formatted(position.quantity(), transaction.quantity()));
