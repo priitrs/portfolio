@@ -8,4 +8,7 @@ public record PositionLot(
         int qtyRemaining,
         BigDecimal unitCost
 ) {
+    public PositionLotDto toDto() {
+        return new PositionLotDto(asset, qtyRemaining, unitCost);
+    }
 }

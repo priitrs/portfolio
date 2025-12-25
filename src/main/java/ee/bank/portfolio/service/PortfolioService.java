@@ -1,7 +1,7 @@
 package ee.bank.portfolio.service;
 
-import ee.bank.portfolio.model.AssetProfitabilityDto;
-import ee.bank.portfolio.model.Position;
+import ee.bank.portfolio.model.*;
+import ee.bank.portfolio.repository.PositionLotRepository;
 import ee.bank.portfolio.repository.PositionRepository;
 import ee.bank.portfolio.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
@@ -17,6 +17,7 @@ public class PortfolioService {
 
     private final TransactionRepository transactionRepository;
     private final PositionRepository positionRepository;
+    private final PositionLotRepository positionLotRepository;
 
     public List<AssetProfitabilityDto> getProfitability() {
         var assetPositions = positionRepository.getAll().stream()
@@ -25,6 +26,18 @@ public class PortfolioService {
 
         return assetPositions.stream()
                 .map(this::getAssetProfitability)
+                .toList();
+    }
+
+    public List<PositionDto> getPositions() {
+        return positionRepository.getAll().stream()
+                .map(Position::toDto)
+                .toList();
+    }
+
+    public List<PositionLotDto> getPositionsLots(String asset) {
+        return positionLotRepository.getAllByAsset(asset).stream()
+                .map(PositionLot::toDto)
                 .toList();
     }
 

@@ -1,10 +1,8 @@
 package ee.bank.portfolio.controller;
 
 import ee.bank.portfolio.model.AssetProfitabilityDto;
-import ee.bank.portfolio.model.Position;
-import ee.bank.portfolio.model.PositionLot;
-import ee.bank.portfolio.repository.PositionLotRepository;
-import ee.bank.portfolio.repository.PositionRepository;
+import ee.bank.portfolio.model.PositionDto;
+import ee.bank.portfolio.model.PositionLotDto;
 import ee.bank.portfolio.service.PortfolioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,8 +21,6 @@ import java.util.List;
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
-    private final PositionRepository positionRepository;
-    private final PositionLotRepository positionLotRepository;
 
     @Operation(summary = "Get portfolio profitability")
     @GetMapping("/profitability")
@@ -34,13 +30,13 @@ public class PortfolioController {
 
     @Operation(summary = "Get portfolio positions")
     @GetMapping("/positions")
-    public List<Position> getPositions(){
-        return positionRepository.getAll();
+    public List<PositionDto> getPositions(){
+        return portfolioService.getPositions();
     }
 
     @Operation(summary = "Get positions lots")
     @GetMapping("/positions/{asset}/lots")
-    public List<PositionLot> getPositionsLots(@PathVariable String asset){
-        return positionLotRepository.getAllByAsset(asset);
+    public List<PositionLotDto> getPositionsLots(@PathVariable String asset){
+        return portfolioService.getPositionsLots(asset);
     }
 }

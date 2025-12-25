@@ -1,18 +1,12 @@
 package ee.bank.portfolio.model;
 
-import lombok.With;
-
 import java.math.BigDecimal;
 
-@With
-public record Position(
+public record PositionDto(
         String asset,
         int quantity,
         BigDecimal averageCost,
         BigDecimal totalCost,
         BigDecimal realizedProfitLoss
 ) {
-    public PositionDto toDto() {
-        return new PositionDto(asset, quantity, averageCost, totalCost, realizedProfitLoss);
-    }
 }
