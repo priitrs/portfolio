@@ -83,6 +83,8 @@ class TransactionsControllerTest {
     void addTransaction_differentOrderTypes() {
         controller.addTransaction(new TransactionDto( "ASSET", Instant.parse("2024-01-01T10:00:00Z"), "buy", 1, BigDecimal.valueOf(10), BigDecimal.valueOf(1)));
         controller.addTransaction(new TransactionDto( "ASSET", Instant.parse("2024-01-01T10:30:00Z"), "buy", 3, BigDecimal.valueOf(11), BigDecimal.valueOf(3)));
+        controller.addTransaction(new TransactionDto( "OTHER_ASSET", Instant.parse("2024-01-01T10:30:00Z"), "buy", 3, BigDecimal.valueOf(15), BigDecimal.valueOf(3)));
+        controller.addTransaction(new TransactionDto( "OTHER_ASSET", Instant.parse("2024-01-01T10:30:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(3)));
         controller.addTransaction(new TransactionDto( "ASSET", Instant.parse("2024-01-01T11:00:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(2)));
 
         var positionLots = positionLotRepository.getAllByAsset("ASSET");

@@ -36,9 +36,9 @@ public class TransactionService {
     public void handleAddTransaction(TransactionDto transactionDto) {
         var optionalPosition = positionRepository.getByAsset(transactionDto.asset());
         switch (transactionDto.type()) {
-            case BUY  -> handleBuy(transactionDto, optionalPosition);
+            case BUY -> handleBuy(transactionDto, optionalPosition);
             case SELL -> handleSell(transactionDto, optionalPosition);
-            default   -> throw new TransactionException(
+            default -> throw new TransactionException(
                     "Invalid transaction type: %s".formatted(transactionDto.type())
             );
         }
@@ -97,7 +97,7 @@ public class TransactionService {
         var fifoCostBasis = BigDecimal.ZERO;
         while (remainingTransactionQuantity > 0) {
             int newPositionLotQuantity;
-            var positionLot = positionLotRepository.getFirstWithRemainingQuantity();
+            var positionLot = positionLotRepository.getFirstWithRemainingQuantity(transaction.asset());
             if (remainingTransactionQuantity > positionLot.qtyRemaining()) {
                 fifoCostBasis = fifoCostBasis.add(positionLot.unitCost().multiply(BigDecimal.valueOf(positionLot.qtyRemaining())));
                 remainingTransactionQuantity -= positionLot.qtyRemaining();

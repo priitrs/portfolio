@@ -31,8 +31,9 @@ public class PositionLotRepository {
         return jdbcTemplate.query("SELECT * FROM position_lots WHERE asset = ? ORDER BY id;", positionLotRowMapper, asset);
     }
 
-    public PositionLot getFirstWithRemainingQuantity(){
-        return jdbcTemplate.query("SELECT * FROM position_lots WHERE qty_remaining > 0 LIMIT 1;", positionLotRowMapper).getFirst();
+    public PositionLot getFirstWithRemainingQuantity(String asset){
+        String query = "SELECT * FROM position_lots WHERE asset = ? and qty_remaining > 0 LIMIT 1;";
+        return jdbcTemplate.query(query, positionLotRowMapper, asset).getFirst();
     }
 
     public void updateQuantity(long id, int quantity) {
