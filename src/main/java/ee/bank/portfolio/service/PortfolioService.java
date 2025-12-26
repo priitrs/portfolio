@@ -20,11 +20,8 @@ public class PortfolioService {
     private final PositionLotRepository positionLotRepository;
 
     public List<AssetProfitabilityDto> getProfitability() {
-        var assetPositions = positionRepository.findAll().stream()
+        return positionRepository.findAll().stream()
                 .map(Position::getAsset)
-                .toList();
-
-        return assetPositions.stream()
                 .map(this::getAssetProfitability)
                 .toList();
     }
