@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.UUID;
+
+import static ee.bank.portfolio.config.MathContexts.FINANCE;
 
 @Entity
 @Table(name = "transactions")
@@ -32,15 +33,20 @@ public class Transaction{
     private BigDecimal fee;
 
     public BigDecimal getBuyTotalCost(){
-       return getPrice().multiply(BigDecimal.valueOf(getQuantity())).add(getFee());
+       return getPrice()
+               .multiply(BigDecimal.valueOf(getQuantity()))
+               .add(getFee(), FINANCE);
     }
 
     public BigDecimal getBuyAverageCost(){
-        return getBuyTotalCost().divide(BigDecimal.valueOf(getQuantity()), 6, RoundingMode.HALF_UP);
+        return getBuyTotalCost()
+                .divide(BigDecimal.valueOf(getQuantity()), FINANCE);
     }
 
     public BigDecimal getSellProceeds(){
-        return getPrice().multiply(BigDecimal.valueOf(getQuantity())).subtract(getFee());
+        return getPrice()
+                .multiply(BigDecimal.valueOf(getQuantity()))
+                .subtract(getFee(), FINANCE);
     }
 
     public TransactionDto toDto(){

@@ -8,8 +8,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
+
+import static ee.bank.portfolio.config.MathContexts.FINANCE;
+import static ee.bank.portfolio.config.MathContexts.PERCENT;
 
 @Service
 @AllArgsConstructor
@@ -42,8 +44,8 @@ public class PortfolioService {
         var position = getPosition(asset);
         var totalInvested = transactionRepository.findTotalInvested(asset);
         var totalProfit = position.getRealizedProfitLoss();
-        var totalReturn = totalProfit.divide(totalInvested, 6, RoundingMode.HALF_UP);
-        String totalReturnPercentage = totalReturn.multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP).toPlainString() + "%";
+        var totalReturn = totalProfit.divide(totalInvested, FINANCE);
+        String totalReturnPercentage = totalReturn.multiply(BigDecimal.valueOf(100), PERCENT).toPlainString() + "%";
         return new AssetProfitabilityDto(
                 asset,
                 position.getQuantity(),

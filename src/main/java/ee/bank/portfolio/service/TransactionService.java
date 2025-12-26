@@ -13,9 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
+
+import static ee.bank.portfolio.config.MathContexts.FINANCE;
 
 @Service
 @AllArgsConstructor
@@ -64,13 +65,14 @@ public class TransactionService {
     }
 
     private Position getUpdatedPositionForBuy(Transaction transaction, Position position) {
-        var newAverageCost = position.getTotalCost().add(transaction.getBuyTotalCost())
-                .divide(BigDecimal.valueOf(position.getQuantity() + transaction.getQuantity()), 6, RoundingMode.HALF_UP);
+        int newPositionQuantity = position.getQuantity() + transaction.getQuantity();
+        var newPositionTotalCost = position.getTotalCost().add(transaction.getBuyTotalCost(), FINANCE);
+        var newAverageCost = newPositionTotalCost.divide(BigDecimal.valueOf(newPositionQuantity), FINANCE);
 
         return position
-                .withQuantity(position.getQuantity() + transaction.getQuantity())
+                .withQuantity(newPositionQuantity)
                 .withAverageCost(newAverageCost)
-                .withTotalCost(position.getTotalCost().add(transaction.getBuyTotalCost()));
+                .withTotalCost(newPositionTotalCost);
     }
 
     private void handleSell(TransactionDto transactionDto, Optional<Position> optionalPosition) {
@@ -83,11 +85,15 @@ public class TransactionService {
 
     private Position getUpdatedPositionForSell(Transaction transaction, Position position, BigDecimal fifoCostBasis) {
         int remainingPositionQuantity = position.getQuantity() - transaction.getQuantity();
-        var remainingTotalCost = position.getTotalCost().subtract(fifoCostBasis);
+        var remainingTotalCost = position.getTotalCost().subtract(fifoCostBasis, FINANCE);
+
         var updatedAverageCost = remainingPositionQuantity > 0 ?
-                remainingTotalCost.divide(BigDecimal.valueOf(remainingPositionQuantity), 6, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
-        var updatedRealizedProfitLoss = position.getRealizedProfitLoss().add(transaction.getSellProceeds()).subtract(fifoCostBasis);
+                remainingTotalCost.divide(BigDecimal.valueOf(remainingPositionQuantity), FINANCE) :
+                BigDecimal.ZERO;
+
+        var updatedRealizedProfitLoss = position.getRealizedProfitLoss()
+                .add(transaction.getSellProceeds())
+                .subtract(fifoCostBasis, FINANCE);
 
         return position
                 .withQuantity(remainingPositionQuantity)
@@ -101,18 +107,19 @@ public class TransactionService {
         var fifoCostBasis = BigDecimal.ZERO;
         while (remainingTransactionQuantity > 0) {
             int newPositionLotQuantity;
+            BigDecimal additionToFifoCostBasis;
             var positionLot = positionLotRepository.findFirstByAssetAndQtyRemainingGreaterThanOrderByIdAsc(transaction.getAsset(), 0).orElseThrow();
             if (remainingTransactionQuantity > positionLot.getQtyRemaining()) {
-                fifoCostBasis = fifoCostBasis.add(positionLot.getUnitCost().multiply(BigDecimal.valueOf(positionLot.getQtyRemaining())));
+                additionToFifoCostBasis = positionLot.getUnitCost().multiply(BigDecimal.valueOf(positionLot.getQtyRemaining()), FINANCE);
                 remainingTransactionQuantity -= positionLot.getQtyRemaining();
                 newPositionLotQuantity = 0;
             } else {
-                fifoCostBasis = fifoCostBasis.add(positionLot.getUnitCost().multiply(BigDecimal.valueOf(remainingTransactionQuantity)));
+                additionToFifoCostBasis = positionLot.getUnitCost().multiply(BigDecimal.valueOf(remainingTransactionQuantity), FINANCE);
                 newPositionLotQuantity = positionLot.getQtyRemaining() - remainingTransactionQuantity;
                 remainingTransactionQuantity = 0;
             }
-            var updatedPositionLot = positionLot.withQtyRemaining(newPositionLotQuantity);
-            positionLotRepository.save(updatedPositionLot);
+            fifoCostBasis = fifoCostBasis.add(additionToFifoCostBasis, FINANCE);
+            positionLotRepository.save(positionLot.withQtyRemaining(newPositionLotQuantity));
         }
         return fifoCostBasis;
     }

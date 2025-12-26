@@ -44,7 +44,7 @@ class PortfolioControllerTest {
         assertThat(profitabilityDto.realizedProfitLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
         assertThat(profitabilityDto.gainLoss()).isEqualByComparingTo(BigDecimal.valueOf(1));
         assertThat(profitabilityDto.totalInvested()).isEqualByComparingTo(BigDecimal.valueOf(52));
-        assertThat(profitabilityDto.totalReturn()).isEqualByComparingTo(BigDecimal.valueOf(0.019231));
+        assertThat(profitabilityDto.totalReturn()).isEqualByComparingTo(BigDecimal.valueOf(0.0192308));
     }
 
     @Test @Transactional
