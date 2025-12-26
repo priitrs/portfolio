@@ -28,7 +28,7 @@ public class TransactionService {
     private final PositionLotRepository positionLotRepository;
 
     public List<TransactionDto> getAllTransactions() {
-        return transactionRepository.getAll().stream()
+        return transactionRepository.findAll().stream()
                 .map(Transaction::toDto)
                 .toList();
     }
@@ -46,8 +46,8 @@ public class TransactionService {
     }
 
     private void handleBuy(TransactionDto transactionDto, Optional<Position> optionalPosition) {
-        var transaction = transactionRepository.save(transactionDto);
-        positionLotRepository.save(new PositionLot(null, transaction.asset(), transaction.quantity(), transaction.getBuyAverageCost()));
+        var transaction = transactionRepository.save(getEntity(transactionDto));
+        positionLotRepository.save(new PositionLot(null, transaction.getAsset(), transaction.getQuantity(), transaction.getBuyAverageCost()));
         positionRepository.save(getPosition(optionalPosition, transaction));
     }
 
@@ -55,8 +55,8 @@ public class TransactionService {
         return optionalPosition
                 .map(position -> getUpdatedPositionForBuy(transaction, position))
                 .orElseGet(() -> new Position(
-                        transaction.asset(),
-                        transaction.quantity(),
+                        transaction.getAsset(),
+                        transaction.getQuantity(),
                         transaction.getBuyAverageCost(),
                         transaction.getBuyTotalCost(),
                         BigDecimal.ZERO
@@ -65,10 +65,10 @@ public class TransactionService {
 
     private Position getUpdatedPositionForBuy(Transaction transaction, Position position) {
         var newAverageCost = position.getTotalCost().add(transaction.getBuyTotalCost())
-                .divide(BigDecimal.valueOf(position.getQuantity() + transaction.quantity()), 6, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(position.getQuantity() + transaction.getQuantity()), 6, RoundingMode.HALF_UP);
 
         return position
-                .withQuantity(position.getQuantity() + transaction.quantity())
+                .withQuantity(position.getQuantity() + transaction.getQuantity())
                 .withAverageCost(newAverageCost)
                 .withTotalCost(position.getTotalCost().add(transaction.getBuyTotalCost()));
     }
@@ -76,13 +76,13 @@ public class TransactionService {
     private void handleSell(TransactionDto transactionDto, Optional<Position> optionalPosition) {
         var position = requirePosition(optionalPosition, transactionDto.asset());
         requireSufficientQuantity(position, transactionDto);
-        var transaction = transactionRepository.save(transactionDto);
+        var transaction = transactionRepository.save(getEntity(transactionDto));
         var fifoCostBasis = processPositionLotsForFifoCostBasis(transaction);
         positionRepository.save(getUpdatedPositionForSell(transaction, position, fifoCostBasis));
     }
 
     private Position getUpdatedPositionForSell(Transaction transaction, Position position, BigDecimal fifoCostBasis) {
-        int remainingPositionQuantity = position.getQuantity() - transaction.quantity();
+        int remainingPositionQuantity = position.getQuantity() - transaction.getQuantity();
         var remainingTotalCost = position.getTotalCost().subtract(fifoCostBasis);
         var updatedAverageCost = remainingPositionQuantity > 0 ?
                 remainingTotalCost.divide(BigDecimal.valueOf(remainingPositionQuantity), 6, RoundingMode.HALF_UP)
@@ -97,11 +97,11 @@ public class TransactionService {
     }
 
     private BigDecimal processPositionLotsForFifoCostBasis(Transaction transaction) {
-        int remainingTransactionQuantity = transaction.quantity();
+        int remainingTransactionQuantity = transaction.getQuantity();
         var fifoCostBasis = BigDecimal.ZERO;
         while (remainingTransactionQuantity > 0) {
             int newPositionLotQuantity;
-            var positionLot = positionLotRepository.findFirstByAssetAndQtyRemainingGreaterThanOrderByIdAsc(transaction.asset(), 0).orElseThrow();
+            var positionLot = positionLotRepository.findFirstByAssetAndQtyRemainingGreaterThanOrderByIdAsc(transaction.getAsset(), 0).orElseThrow();
             if (remainingTransactionQuantity > positionLot.getQtyRemaining()) {
                 fifoCostBasis = fifoCostBasis.add(positionLot.getUnitCost().multiply(BigDecimal.valueOf(positionLot.getQtyRemaining())));
                 remainingTransactionQuantity -= positionLot.getQtyRemaining();
@@ -127,5 +127,17 @@ public class TransactionService {
             throw new TransactionException("Existing position is too small for sell order. Position qty: %s, transaction qty: %s"
                     .formatted(position.getQuantity(), transaction.quantity()));
         }
+    }
+
+    private Transaction getEntity(TransactionDto transactionDto) {
+        return new Transaction(
+                null,
+                transactionDto.asset(),
+                transactionDto.timestamp(),
+                transactionDto.type(),
+                transactionDto.quantity(),
+                transactionDto.price(),
+                transactionDto.fee()
+        );
     }
 }

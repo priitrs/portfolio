@@ -1,6 +1,7 @@
 package ee.bank.portfolio.controller;
 
 import ee.bank.portfolio.exception.TransactionException;
+import ee.bank.portfolio.model.Transaction;
 import ee.bank.portfolio.model.TransactionDto;
 import ee.bank.portfolio.repository.PositionLotRepository;
 import ee.bank.portfolio.repository.PositionRepository;
@@ -45,14 +46,14 @@ class TransactionsControllerTest {
 
     @Test @Transactional
     void getAllTransactions() throws Exception {
-        var buyTransaction = transactionRepository.save(new TransactionDto( "ASSET", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
-        var sellTransaction = transactionRepository.save(new TransactionDto( "ASSET", Instant.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        var buyTransaction = transactionRepository.save(new Transaction(null, "ASSET", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
+        var sellTransaction = transactionRepository.save(new Transaction(null,"ASSET", Instant.parse("2024-01-01T11:00:00Z"), "sell", 5, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
 
         mockMvc.perform(get("/api/portfolio/transactions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].type").value(buyTransaction.type()))
-                .andExpect(jsonPath("$[1].type").value(sellTransaction.type()));
+                .andExpect(jsonPath("$[0].type").value(buyTransaction.getType()))
+                .andExpect(jsonPath("$[1].type").value(sellTransaction.getType()));
     }
 
     @Test @Transactional
@@ -74,9 +75,9 @@ class TransactionsControllerTest {
                         .content(payload))
                 .andExpect(status().isOk());
 
-        var result = transactionRepository.getAll();
+        var result = transactionRepository.findAll();
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().type()).isEqualTo("buy");
+        assertThat(result.getFirst().getType()).isEqualTo("buy");
     }
 
     @Test @Transactional
@@ -109,7 +110,7 @@ class TransactionsControllerTest {
         assertThatThrownBy(() -> controller.addTransaction(transaction))
                 .isInstanceOf(TransactionException.class)
                 .hasMessage("Position does not exist for sell order. Asset: ASSET");
-        assertThat(transactionRepository.getAll()).isEmpty();
+        assertThat(transactionRepository.findAll()).isEmpty();
     }
 
     @Test @Transactional
@@ -120,7 +121,7 @@ class TransactionsControllerTest {
         assertThatThrownBy(() -> controller.addTransaction(sellTransaction))
                 .isInstanceOf(TransactionException.class)
                 .hasMessage("Existing position is too small for sell order. Position qty: 2, transaction qty: 4");
-        assertThat(transactionRepository.getAll().size()).isEqualTo(1);
+        assertThat(transactionRepository.findAll().size()).isEqualTo(1);
     }
 
     @Test @Transactional
@@ -129,6 +130,6 @@ class TransactionsControllerTest {
         assertThatThrownBy(() -> controller.addTransaction(transaction))
                 .isInstanceOf(TransactionException.class)
                 .hasMessage(  "Invalid transaction type: exchange");
-        assertThat(transactionRepository.getAll()).isEmpty();
+        assertThat(transactionRepository.findAll()).isEmpty();
     }
 }
