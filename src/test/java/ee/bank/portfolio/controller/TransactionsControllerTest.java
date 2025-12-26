@@ -95,12 +95,12 @@ class TransactionsControllerTest {
         var positionLot2 = positionLots.get(1);
         assertThat(positionLot2.getQtyRemaining()).isEqualTo(1);
         assertThat(positionLot2.getUnitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
-        var position = positionRepository.getByAsset("ASSET");
+        var position = positionRepository.findFirstByAsset("ASSET");
         assertThat(position.isPresent()).isTrue();
-        assertThat(position.get().quantity()).isEqualTo(1);
-        assertThat(position.get().averageCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
-        assertThat(position.get().totalCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
-        assertThat(position.get().realizedProfitLoss()).isEqualByComparingTo(BigDecimal.valueOf(23));
+        assertThat(position.get().getQuantity()).isEqualTo(1);
+        assertThat(position.get().getAverageCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        assertThat(position.get().getTotalCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        assertThat(position.get().getRealizedProfitLoss()).isEqualByComparingTo(BigDecimal.valueOf(23));
     }
 
     @Test @Transactional

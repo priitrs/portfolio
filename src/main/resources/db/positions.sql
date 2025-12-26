@@ -6,5 +6,5 @@ create table positions (
                             quantity	integer,
                             average_cost	decimal,
                             total_cost	decimal,
-                            realized_pl	decimal
+                            realized_profit_loss	decimal
 );

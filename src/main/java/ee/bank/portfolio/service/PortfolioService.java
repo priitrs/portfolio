@@ -20,8 +20,8 @@ public class PortfolioService {
     private final PositionLotRepository positionLotRepository;
 
     public List<AssetProfitabilityDto> getProfitability() {
-        var assetPositions = positionRepository.getAll().stream()
-                .map(Position::asset)
+        var assetPositions = positionRepository.findAll().stream()
+                .map(Position::getAsset)
                 .toList();
 
         return assetPositions.stream()
@@ -30,7 +30,7 @@ public class PortfolioService {
     }
 
     public List<PositionDto> getPositions() {
-        return positionRepository.getAll().stream()
+        return positionRepository.findAll().stream()
                 .map(Position::toDto)
                 .toList();
     }
@@ -44,15 +44,15 @@ public class PortfolioService {
     private AssetProfitabilityDto getAssetProfitability(String asset) {
         var position = getPosition(asset);
         var totalInvested = transactionRepository.findTotalInvested(asset);
-        var totalProfit = position.realizedProfitLoss();
+        var totalProfit = position.getRealizedProfitLoss();
         var totalReturn = totalProfit.divide(totalInvested, 6, RoundingMode.HALF_UP);
         String totalReturnPercentage = totalReturn.multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP).toPlainString() + "%";
         return new AssetProfitabilityDto(
                 asset,
-                position.quantity(),
-                position.averageCost(),
-                position.totalCost(),
-                position.realizedProfitLoss(),
+                position.getQuantity(),
+                position.getAverageCost(),
+                position.getTotalCost(),
+                position.getRealizedProfitLoss(),
                 totalProfit,
                 totalInvested,
                 totalReturn,
@@ -61,7 +61,7 @@ public class PortfolioService {
     }
 
     private Position getPosition(String asset) {
-        return positionRepository.getByAsset(asset)
+        return positionRepository.findFirstByAsset(asset)
                 .orElseThrow(() -> new IllegalArgumentException("Asset not found: " + asset));
     }
 }
