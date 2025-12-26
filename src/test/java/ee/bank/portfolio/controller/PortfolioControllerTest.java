@@ -58,11 +58,11 @@ class PortfolioControllerTest {
     }
 
     @Test @Transactional
-    void getPositionsLots() {
+    void getPositionLots() {
         transactionService.handleAddTransaction(new TransactionDto("ASSET_1", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
         transactionService.handleAddTransaction(new TransactionDto("ASSET_2", Instant.parse("2024-01-01T10:00:00Z"), "buy", 10, BigDecimal.valueOf(5), BigDecimal.valueOf(2)));
 
-        var result = controller.getPositionsLots("ASSET_2");
+        var result = controller.getPositionLots("ASSET_2");
 
         assertThat(result.size()).isEqualTo(1);
     }

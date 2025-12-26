@@ -34,7 +34,7 @@ public class PortfolioService {
                 .toList();
     }
 
-    public List<PositionLotDto> getPositionsLots(String asset) {
+    public List<PositionLotDto> getPositionLots(String asset) {
         return positionLotRepository.findByAssetOrderByIdAsc(asset).stream()
                 .map(PositionLot::toDto)
                 .toList();
@@ -45,7 +45,8 @@ public class PortfolioService {
         var totalInvested = transactionRepository.findTotalInvested(asset);
         var totalProfit = position.getRealizedProfitLoss();
         var totalReturn = totalProfit.divide(totalInvested, FINANCE);
-        String totalReturnPercentage = totalReturn.multiply(BigDecimal.valueOf(100), PERCENT).toPlainString() + "%";
+        var totalReturnPercentage = totalReturn.multiply(BigDecimal.valueOf(100), PERCENT).toPlainString() + "%";
+
         return new AssetProfitabilityDto(
                 asset,
                 position.getQuantity(),

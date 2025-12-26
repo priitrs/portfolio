@@ -36,7 +36,7 @@ public class PortfolioController {
 
     @Operation(summary = "Get positions lots")
     @GetMapping("/positions/{asset}/lots")
-    public List<PositionLotDto> getPositionsLots(@PathVariable String asset){
-        return portfolioService.getPositionsLots(asset);
+    public List<PositionLotDto> getPositionLots(@PathVariable String asset){
+        return portfolioService.getPositionLots(asset);
     }
 }
