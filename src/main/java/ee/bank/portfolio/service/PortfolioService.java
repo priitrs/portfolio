@@ -36,7 +36,7 @@ public class PortfolioService {
     }
 
     public List<PositionLotDto> getPositionsLots(String asset) {
-        return positionLotRepository.getAllByAsset(asset).stream()
+        return positionLotRepository.findByAssetOrderByIdAsc(asset).stream()
                 .map(PositionLot::toDto)
                 .toList();
     }

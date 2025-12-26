@@ -87,14 +87,14 @@ class TransactionsControllerTest {
         controller.addTransaction(new TransactionDto( "OTHER_ASSET", Instant.parse("2024-01-01T10:30:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(3)));
         controller.addTransaction(new TransactionDto( "ASSET", Instant.parse("2024-01-01T11:00:00Z"), "sell", 3, BigDecimal.valueOf(20), BigDecimal.valueOf(2)));
 
-        var positionLots = positionLotRepository.getAllByAsset("ASSET");
+        var positionLots = positionLotRepository.findByAssetOrderByIdAsc("ASSET");
         assertThat(positionLots.size()).isEqualTo(2);
         var positionLot = positionLots.getFirst();
-        assertThat(positionLot.qtyRemaining()).isEqualTo(0);
-        assertThat(positionLot.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(11));
+        assertThat(positionLot.getQtyRemaining()).isEqualTo(0);
+        assertThat(positionLot.getUnitCost()).isEqualByComparingTo(BigDecimal.valueOf(11));
         var positionLot2 = positionLots.get(1);
-        assertThat(positionLot2.qtyRemaining()).isEqualTo(1);
-        assertThat(positionLot2.unitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
+        assertThat(positionLot2.getQtyRemaining()).isEqualTo(1);
+        assertThat(positionLot2.getUnitCost()).isEqualByComparingTo(BigDecimal.valueOf(12));
         var position = positionRepository.getByAsset("ASSET");
         assertThat(position.isPresent()).isTrue();
         assertThat(position.get().quantity()).isEqualTo(1);

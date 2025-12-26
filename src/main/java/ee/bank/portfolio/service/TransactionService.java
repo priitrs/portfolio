@@ -2,6 +2,7 @@ package ee.bank.portfolio.service;
 
 import ee.bank.portfolio.exception.TransactionException;
 import ee.bank.portfolio.model.Position;
+import ee.bank.portfolio.model.PositionLot;
 import ee.bank.portfolio.model.Transaction;
 import ee.bank.portfolio.model.TransactionDto;
 import ee.bank.portfolio.repository.PositionLotRepository;
@@ -46,7 +47,7 @@ public class TransactionService {
 
     private void handleBuy(TransactionDto transactionDto, Optional<Position> optionalPosition) {
         var transaction = transactionRepository.save(transactionDto);
-        positionLotRepository.insert(transaction.asset(), transaction.quantity(), transaction.getBuyAverageCost());
+        positionLotRepository.save(new PositionLot(null, transaction.asset(), transaction.quantity(), transaction.getBuyAverageCost()));
         if (optionalPosition.isEmpty()) {
             var newPosition = new Position(
                     transaction.asset(),
@@ -97,17 +98,18 @@ public class TransactionService {
         var fifoCostBasis = BigDecimal.ZERO;
         while (remainingTransactionQuantity > 0) {
             int newPositionLotQuantity;
-            var positionLot = positionLotRepository.getFirstWithRemainingQuantity(transaction.asset());
-            if (remainingTransactionQuantity > positionLot.qtyRemaining()) {
-                fifoCostBasis = fifoCostBasis.add(positionLot.unitCost().multiply(BigDecimal.valueOf(positionLot.qtyRemaining())));
-                remainingTransactionQuantity -= positionLot.qtyRemaining();
+            var positionLot = positionLotRepository.findFirstByAssetAndQtyRemainingGreaterThanOrderByIdAsc(transaction.asset(), 0).orElseThrow();
+            if (remainingTransactionQuantity > positionLot.getQtyRemaining()) {
+                fifoCostBasis = fifoCostBasis.add(positionLot.getUnitCost().multiply(BigDecimal.valueOf(positionLot.getQtyRemaining())));
+                remainingTransactionQuantity -= positionLot.getQtyRemaining();
                 newPositionLotQuantity = 0;
             } else {
-                fifoCostBasis = fifoCostBasis.add(positionLot.unitCost().multiply(BigDecimal.valueOf(remainingTransactionQuantity)));
-                newPositionLotQuantity = positionLot.qtyRemaining() - remainingTransactionQuantity;
+                fifoCostBasis = fifoCostBasis.add(positionLot.getUnitCost().multiply(BigDecimal.valueOf(remainingTransactionQuantity)));
+                newPositionLotQuantity = positionLot.getQtyRemaining() - remainingTransactionQuantity;
                 remainingTransactionQuantity = 0;
             }
-            positionLotRepository.updateQuantity(positionLot.id(), newPositionLotQuantity);
+            var updatedPositionLot = positionLot.withQtyRemaining(newPositionLotQuantity);
+            positionLotRepository.save(updatedPositionLot);
         }
         return fifoCostBasis;
     }

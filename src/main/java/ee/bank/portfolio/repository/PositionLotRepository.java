@@ -1,42 +1,14 @@
 package ee.bank.portfolio.repository;
 
 import ee.bank.portfolio.model.PositionLot;
-import lombok.AllArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
-@Repository
-@AllArgsConstructor
-public class PositionLotRepository {
+public interface PositionLotRepository extends JpaRepository<PositionLot, Long> {
 
-    private final JdbcTemplate jdbcTemplate;
+    List<PositionLot> findByAssetOrderByIdAsc(String asset);
 
-    private final RowMapper<PositionLot> positionLotRowMapper = (rs, rowNum) -> new PositionLot(
-            rs.getLong("id"),
-            rs.getString("asset"),
-            rs.getInt("qty_remaining"),
-            rs.getBigDecimal("unit_cost")
-    );
-
-    public void insert(String asset, int quantity, BigDecimal unitCost) {
-        jdbcTemplate.update("INSERT INTO position_lots (asset, qty_remaining, unit_cost) VALUES (?, ?, ?);",
-                asset, quantity, unitCost);
-    }
-
-    public List<PositionLot> getAllByAsset(String asset){
-        return jdbcTemplate.query("SELECT * FROM position_lots WHERE asset = ? ORDER BY id;", positionLotRowMapper, asset);
-    }
-
-    public PositionLot getFirstWithRemainingQuantity(String asset){
-        String query = "SELECT * FROM position_lots WHERE asset = ? and qty_remaining > 0 LIMIT 1;";
-        return jdbcTemplate.query(query, positionLotRowMapper, asset).getFirst();
-    }
-
-    public void updateQuantity(long id, int quantity) {
-        jdbcTemplate.update("UPDATE position_lots SET qty_remaining = ? WHERE id = ?;", quantity, id);
-    }
+    Optional<PositionLot> findFirstByAssetAndQtyRemainingGreaterThanOrderByIdAsc(String asset, int qty);
 }
