@@ -22,8 +22,8 @@ import static ee.bank.portfolio.config.MathContexts.FINANCE;
 @AllArgsConstructor
 public class TransactionService {
 
-    private static final String BUY = "buy";
-    private static final String SELL = "sell";
+    static final String BUY = "buy";
+    static final String SELL = "sell";
     private final TransactionRepository transactionRepository;
     private final PositionRepository positionRepository;
     private final PositionLotRepository positionLotRepository;
